@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Bejeweled.States
 {
-    class GameMenu : State, IState
+    class GameMenu : IState
     {
         public void LoadContent(){}
         public void Update(GameTime gameTime){}

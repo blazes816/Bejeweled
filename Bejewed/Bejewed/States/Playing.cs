@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Bejeweled.States
 {
-    class Playing : State, IState
+    class Playing : IState
     {
         private Board board;
         private ContentManager content;

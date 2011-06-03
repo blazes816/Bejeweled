@@ -24,8 +24,4 @@ namespace Bejeweled.States
             set;
         }
     }
-
-    class State
-    {
-    }
 }

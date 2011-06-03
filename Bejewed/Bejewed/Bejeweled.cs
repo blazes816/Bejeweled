@@ -18,13 +18,12 @@ namespace Bejeweled
     /// </summary>
     public class Bejeweled : Microsoft.Xna.Framework.Game
     {
-        public enum GameState {StartMenu, GameMenu, Playing};
-        public GameState CurrentState = GameState.Playing;
+        // Create our state dispatcher
+        private Dispatch dispatch = new Dispatch();
+
+        // Create some graphic helpers
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
-
-        // State handlers
-        private Hashtable gameStates = new Hashtable();
 
         public Bejeweled()
         {
@@ -34,11 +33,6 @@ namespace Bejeweled
             graphics.IsFullScreen = false;
             Window.Title = "Bejeweled";
             Content.RootDirectory = "Content";
-            //this.States = new IState[3] { new StartMenu(), new GameMenu(), new Playing() };
-
-            this.gameStates.Add(GameState.StartMenu, new StartMenu());
-            this.gameStates.Add(GameState.GameMenu, new GameMenu());
-            this.gameStates.Add(GameState.Playing, new Playing());
         }
 
         /// <summary>
@@ -62,55 +56,15 @@ namespace Bejeweled
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // Set spritebatches and contents to the world!
-            foreach (IState state in this.States())
+            foreach (IState state in dispatch.States())
             {
                 state.SpriteBatch = spriteBatch;
                 state.Content = Content;
             }
 
-            dispatchEvent("LoadContent");
-
+            dispatch.dispatch("LoadContent");
         }
 
-        private void dispatchEvent(String hook, GameTime gameTime)
-        {
-            foreach(IState state in this.States())
-            {
-                Type thisType = state.GetType();
-                MethodInfo method = thisType.GetMethod(hook);
-                object[] args;
-
-                switch (hook)
-                {
-                    case "Update":
-                        {
-                            args = new object[1];
-                            args[0] = gameTime;
-                            break;
-                        }
-                    default:
-                        {
-                            args = new object[0];
-                            break;
-                        }
-                }
-
-                method.Invoke(state, args);
-            }
-        }
-
-        private void dispatchEvent(String hook)
-        {
-            this.dispatchEvent(hook, new GameTime());
-        }
-
-        public IEnumerable States()
-        {
-            foreach (GameState key in this.gameStates.Keys)
-            {
-                yield return this.gameStates[key];
-            }
-        }
 
         /// <summary>
         /// UnloadContent will be called once per game and is the place to unload
@@ -133,7 +87,7 @@ namespace Bejeweled
                 Keyboard.GetState().IsKeyDown(Keys.Escape))
                 this.Exit();
 
-            dispatchEvent("Update", gameTime);
+            dispatch.dispatch("Update", gameTime);
 
             base.Update(gameTime);
         }
@@ -152,14 +106,11 @@ namespace Bejeweled
 
             // Call Board Draw hook
             //this.board.Draw();
-            switch (CurrentState)
-            {
-                case GameState.Playing : {
-                    IState playing = (IState)this.gameStates[GameState.Playing];
-                    playing.Draw();
-                    break;
-                }
-            }
+
+            // Call the draw hook on the current state
+            IState state = this.dispatch.getState(dispatch.CurrentState);
+            state.Draw();
+
             spriteBatch.End();
 
             base.Draw(gameTime);
